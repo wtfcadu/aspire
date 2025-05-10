@@ -1,0 +1,159 @@
+# Mobile Optimization Fixes for Interactive Panel
+
+## CSS Mobile Fixes
+
+```css
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    /* Fix panels */
+    .left-panel {
+        height: 100% !important;
+        width: 100% !important;
+        transform: translateX(-100%);
+        border-radius: 0;
+    }
+    
+    .right-panel.split {
+        width: 0 !important;
+        opacity: 0;
+    }
+    
+    /* Fix canvas */
+    canvas.panel-open {
+        opacity: 0.2 !important;
+    }
+    
+    /* Fix section 5 */
+    #content-5 {
+        flex-direction: column !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        padding: 20px !important;
+    }
+    
+    .arrears-left {
+        height: 200px !important;
+        min-height: 200px !important;
+        margin-bottom: 20px;
+    }
+    
+    .arrears-title {
+        font-size: 3rem !important;
+    }
+    
+    .arrears-images {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        width: 100% !important;
+    }
+    
+    .arrears-image {
+        width: 120px !important;
+        height: 120px !important;
+    }
+}
+```
+
+## JavaScript Mobile Fixes
+
+```javascript
+// Add this helper function
+function isMobileDevice() {
+    return (window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+}
+
+// Update toggle panel for mobile
+const isMobile = isMobileDevice();
+if (isMobile) {
+    // On mobile, just update opacity instead of moving particles
+    if (window.particleSystem) {
+        gsap.to(window.particleSystem.material, {
+            opacity: isPanelVisible ? 0.2 : 1,
+            duration: 0.6
+        });
+    }
+}
+
+// Add this to showSection for section 5 on mobile
+if (isMobileDevice() && sectionNumber === 5) {
+    const section5 = document.getElementById('content-5');
+    if (section5) {
+        section5.style.height = 'auto';
+        section5.style.overflow = 'auto';
+    }
+    leftPanel.scrollTop = 0; // Ensure we're at the top
+}
+
+// Better touch handling
+let touchStartY = 0;
+let touchThreshold = 50;
+let lastTouchTime = 0;
+
+document.addEventListener('touchstart', function(e) {
+    touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTouchTime < 300) return;
+    lastTouchTime = now;
+    
+    const touchEndY = e.changedTouches[0].clientY;
+    const diffY = touchStartY - touchEndY;
+    
+    if (Math.abs(diffY) > touchThreshold) {
+        const direction = diffY > 0 ? 1 : -1;
+        const nextSection = currentSection + direction;
+        
+        if (nextSection >= 0 && nextSection <= 5) {
+            showSection(nextSection);
+        }
+    }
+}, { passive: false });
+
+// Prevent unwanted scrolling on mobile
+document.body.style.overflow = 'hidden';
+document.body.style.overscrollBehavior = 'none';
+document.body.style.touchAction = 'none';
+```
+
+## HTML Fixes for Section 5
+
+```html
+<!-- Fixed Structure for Section 5 -->
+<div class="content-panel" id="content-5">
+    <div class="arrears-left">
+        <div class="arrears-waves"></div>
+        <div class="arrears-logo">
+            <div class="logo-row">
+                <div class="logo-square"></div>
+                <div class="logo-square"></div>
+            </div>
+            <div class="logo-row">
+                <div class="logo-square"></div>
+                <div class="logo-square">
+                    <div class="logo-heart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="arrears-right">
+        <h1 class="arrears-title">Arrears.com</h1>
+        <p class="arrears-tagline">Pioneering the AI revolution in customer engagement and debt resolution.</p>
+        <div class="arrears-images">
+            <div class="arrears-image"></div>
+            <div class="arrears-image"></div>
+            <div class="arrears-image"></div>
+        </div>
+    </div>
+</div>
+```
+
+## Meta Tags for Mobile
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+``` 
